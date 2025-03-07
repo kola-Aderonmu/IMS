@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>IMS Dashboard</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: "Poppins", sans-serif;
+      }
+
+      :root {
+        --primary-color: #4361ee;
+        --secondary-color: #3f37c9;
+        --accent-color: #4895ef;
+        --warning-color: #f72585;
+        --success-color: #4cc9f0;
+        --light-bg: #f8f9fa;
+      }
+
+      body {
+        background-color: #f0f2f5;
+      }
+
+      .dashboard-container {
+        display: grid;
+        grid-template-columns: 250px 1fr;
+        min-height: 100vh;
+      }
+
+      /* Sidebar Styling */
+      .sidebar {
+        background: var(--primary-color);
+        color: white;
+        padding: 20px;
+      }
+
+      .sidebar-header {
+        padding: 20px 0;
+        text-align: center;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .nav-menu {
+        margin-top: 30px;
+      }
+
+      .nav-item {
+        padding: 15px;
+        margin: 5px 0;
+        border-radius: 8px;
+        transition: all 0.3s;
+      }
+
+      .nav-item:hover {
+        background: var(--secondary-color);
+        cursor: pointer;
+      }
+
+      .nav-item i {
+        margin-right: 10px;
+      }
+
+      /* Main Content Styling */
+      .main-content {
+        padding: 30px;
+      }
+
+      .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+      }
+
+      .stat-card {
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      }
+
+      .stat-card h3 {
+        color: #666;
+        font-size: 0.9em;
+        margin-bottom: 10px;
+      }
+
+      .stat-card .value {
+        font-size: 1.8em;
+        font-weight: 600;
+        color: var(--primary-color);
+      }
+
+      .chart-container {
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
+      }
+
+      .alerts-section {
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      }
+
+      .alert-item {
+        padding: 10px;
+        margin: 5px 0;
+        border-radius: 5px;
+      }
+
+      .alert-item.urgent {
+        background: #ffe6e6;
+        border-left: 4px solid var(--warning-color);
+      }
+
+      .alert-item.warning {
+        background: #fff3e6;
+        border-left: 4px solid #ff9f1c;
+      }
+
+      a {
+        text-decoration: none;
+        color: inherit;
+      }
+      .dashboard-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 20px;
+        margin-top: 20px;
+      }
+
+      .dashboard-card {
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      }
+
+      .product-list,
+      .sales-list {
+        margin-top: 15px;
+      }
+
+      .product-item,
+      .sale-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 10px 0;
+        border-bottom: 1px solid #eee;
+      }
+
+      .sale-item {
+        flex-direction: column;
+      }
+
+      .sale-details {
+        color: var(--primary-color);
+        font-weight: 500;
+      }
+
+      .sale-date {
+        font-size: 0.8em;
+        color: #666;
+      }
+
+      .success-alert {
+        background: #d4edda;
+        color: #155724;
+        padding: 15px;
+        border-radius: 5px;
+        margin-bottom: 20px;
+        border-left: 4px solid #28a745;
+      }
+
+      .alerts-section {
+        background: white;
+        padding: 25px;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      }
+
+      .alerts-container {
+        margin-top: 15px;
+      }
+
+      .alert-item {
+        display: flex;
+        align-items: center;
+        padding: 15px;
+        margin: 10px 0;
+        border-radius: 8px;
+        gap: 15px;
+      }
+
+      .alert-item.critical {
+        background: #fff5f5;
+        border-left: 4px solid #f56565;
+      }
+
+      .alert-item.warning {
+        background: #fffaf0;
+        border-left: 4px solid #ed8936;
+      }
+
+      .alert-item i {
+        font-size: 24px;
+        color: #f56565;
+      }
+
+      .alert-item.warning i {
+        color: #ed8936;
+      }
+
+      .alert-content {
+        flex: 1;
+      }
+
+      .alert-content h4 {
+        margin-bottom: 5px;
+        color: #2d3748;
+      }
+
+      .alert-content p {
+        color: #4a5568;
+        margin: 0;
+      }
+
+      .alert-content small {
+        color: #718096;
+        display: block;
+        margin-top: 5px;
+      }
+
+      .alert-action {
+        margin-left: auto;
+      }
+
+      .action-btn {
+        padding: 8px 16px;
+        border: none;
+        border-radius: 5px;
+        background: var(--primary-color);
+        color: white;
+        cursor: pointer;
+        transition: all 0.3s;
+      }
+
+      .action-btn:hover {
+        background: var(--secondary-color);
+      }
+
+      .stock-summary {
+        margin-top: 20px;
+        padding: 15px;
+        background: #f7fafc;
+        border-radius: 8px;
+        display: flex;
+        gap: 20px;
+      }
+
+      .summary-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .summary-item .label {
+        color: #4a5568;
+      }
+
+      .summary-item .value {
+        font-weight: 600;
+        color: var(--primary-color);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="dashboard-container">
+      <!-- Sidebar -->
+      <div class="sidebar">
+        <div class="sidebar-header">
+          <h2>IMS Dashboard</h2>
+        </div>
+        <div class="nav-menu">
+          <a href="{{ url_for('main.add_product') }}">
+            <div class="nav-item"><i class="fas fa-plus"></i> Add Product</div>
+          </a>
+          <a href="{{ url_for('main.record_sale') }}">
+            <div class="nav-item">
+              <i class="fas fa-shopping-cart"></i> Record Sale
+            </div>
+          </a>
+          <a href="{{ url_for('main.monitoring') }}">
+            <div class="nav-item">
+              <i class="fas fa-chart-line"></i> Monitoring
+            </div>
+          </a>
+          <a href="{{ url_for('main.forecasting') }}">
+            <div class="nav-item">
+              <i class="fas fa-chart-bar"></i> Forecasting
+            </div>
+          </a>
+          <a href="{{ url_for('main.generate_report') }}">
+            <div class="nav-item">
+              <i class="fas fa-file-pdf"></i> Generate Report
+            </div>
+          </a>
+        </div>
+      </div>
+
+      <!-- Main Content -->
+      <div class="main-content">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <h3>Total Sales (30 days)</h3>
+            <div class="value">{{ total_sales }}</div>
+          </div>
+          <div class="stat-card">
+            <h3>Total Products</h3>
+            <div class="value">{{ products|length }}</div>
+          </div>
+          <div class="stat-card">
+            <h3>Low Stock Items</h3>
+            <div class="value">{{ low_stock_products|length }}</div>
+          </div>
+          <!-- <div class="stat-card">
+            <h3>Total Revenue</h3>
+            <div class="value">${{ "%.2f"|format(total_revenue) }}</div>
+          </div> -->
+        </div>
+
+        <div class="dashboard-grid">
+          <!-- Best Selling Products Card -->
+          <div class="dashboard-card">
+            <h3>Best Selling Products</h3>
+            <div class="product-list">
+              {% for product, total in best_selling_products %}
+              <div class="product-item">
+                <span class="product-name">{{ product }}</span>
+                <span class="product-sales">{{ total }} units</span>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+
+          <!-- Inventory Stats Card -->
+          <div class="dashboard-card">
+            <h3>Inventory Overview</h3>
+            <div class="stat-item">
+              <span>Out of Stock Items</span>
+              <span class="value">{{ out_of_stock }}</span>
+            </div>
+            <div class="stat-item">
+              <span>Total Inventory Value</span>
+              <span class="value"
+                >${{ "%.2f"|format(total_inventory_value) }}</span
+              >
+            </div>
+          </div>
+
+          <!-- Recent Sales Card -->
+          <div class="dashboard-card">
+            <h3>Recent Sales</h3>
+            <div class="sales-list">
+              {% for sale, product in recent_sales %}
+              <div class="sale-item">
+                <span class="product-name">{{ product.name }}</span>
+                <span class="sale-details">
+                  {{ sale.quantity }} units | ${{ "%.2f"|format(sale.quantity *
+                  product.unit_price) }}
+                </span>
+                <span class="sale-date"
+                  >{{ sale.sale_date.strftime('%Y-%m-%d %H:%M') }}</span
+                >
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+        {% if graph_json %}
+        <div class="chart-container">
+          <h3>Sales Trend</h3>
+          <div id="sales-trend"></div>
+        </div>
+        {% endif %}
+
+        <div class="alerts-section">
+          <h3>Stock Alerts</h3>
+          <div class="alerts-container">
+            <!-- Out of Stock Alerts -->
+            {% for product in products if product.current_stock == 0 %}
+            <div class="alert-item critical">
+              <i class="fas fa-exclamation-circle"></i>
+              <div class="alert-content">
+                <h4>Out of Stock</h4>
+                <p>{{ product.name }} needs immediate restock</p>
+              </div>
+              <div class="alert-action">
+                <button
+                  onclick="location.href='{{ url_for('main.add_stock', product_id=product.id) }}'"
+                  class="action-btn"
+                >
+                  Restock Now
+                </button>
+              </div>
+            </div>
+            {% endfor %}
+
+            <!-- Low Stock Alerts -->
+            {% for product in products if product.current_stock <=
+            product.minimum_stock and product.current_stock > 0 %}
+            <div class="alert-item warning">
+              <i class="fas fa-warning"></i>
+              <div class="alert-content">
+                <h4>Low Stock Warning</h4>
+                <p>
+                  {{ product.name }} - Only {{ product.current_stock }} units
+                  remaining
+                </p>
+                <small>Minimum required: {{ product.minimum_stock }}</small>
+              </div>
+              <div class="alert-action">
+                <button
+                  onclick="location.href='{{ url_for('main.add_stock', product_id=product.id) }}'"
+                  class="action-btn"
+                >
+                  Order More
+                </button>
+              </div>
+            </div>
+            {% endfor %}
+
+            <!-- Stock Level Status -->
+            <div class="stock-summary">
+              <div class="summary-item">
+                <span class="label">Critical Items:</span>
+                <span class="value"
+                  >{{ products|selectattr('current_stock', 'equalto',
+                  0)|list|length }}</span
+                >
+              </div>
+              <div class="summary-item">
+                <span class="label">Low Stock Items:</span>
+                <span class="value">{{ low_stock_products|length }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {% if graph_json %}
+    <script>
+      var graphs = {{ graph_json | safe }};
+      Plotly.newPlot('sales-trend', graphs.data, graphs.layout);
+    </script>
+    {% endif %}
+  </body>
+</html>

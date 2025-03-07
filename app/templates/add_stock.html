@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Add Stock - IMS</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      /* Use the same styles as add_product.html */
+      /* Add this specific style */
+      .stock-form {
+        max-width: 400px;
+        margin: 20px auto;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="main-content">
+      <div class="form-container">
+        <h2>Add Stock - {{ product.name }}</h2>
+        <form method="POST" class="stock-form">
+          <div class="form-group">
+            <label>Current Stock: {{ product.current_stock }}</label>
+          </div>
+          <div class="form-group">
+            <label for="quantity">Quantity to Add</label>
+            <input
+              type="number"
+              name="quantity"
+              id="quantity"
+              min="1"
+              required
+              class="form-control"
+            />
+          </div>
+          <button type="submit" class="submit-btn">Add Stock</button>
+        </form>
+      </div>
+    </div>
+  </body>
+</html>

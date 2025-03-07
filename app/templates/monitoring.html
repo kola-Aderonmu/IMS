@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Stock Monitoring - IMS</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: "Poppins", sans-serif;
+      }
+
+      :root {
+        --primary-color: #4361ee;
+        --secondary-color: #3f37c9;
+        --accent-color: #4895ef;
+        --light-bg: #f0f2f5;
+        --danger: #e74c3c;
+        --warning: #f1c40f;
+        --success: #2ecc71;
+      }
+
+      body {
+        background-color: var(--light-bg);
+        display: grid;
+        grid-template-columns: 250px 1fr;
+        min-height: 100vh;
+      }
+
+      /* Sidebar styles same as other pages */
+      .sidebar {
+        background: var(--primary-color);
+        color: white;
+        padding: 20px;
+      }
+
+      .main-content {
+        padding: 40px;
+      }
+
+      .monitoring-container {
+        display: grid;
+        gap: 25px;
+      }
+
+      .status-overview {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+        margin-bottom: 20px;
+      }
+
+      .status-card {
+        background: white;
+        padding: 25px;
+        border-radius: 15px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      }
+
+      .status-card h3 {
+        color: #666;
+        font-size: 1.1em;
+        margin-bottom: 15px;
+      }
+
+      .status-value {
+        font-size: 2em;
+        font-weight: 600;
+        margin: 10px 0;
+      }
+
+      .critical .status-value {
+        color: var(--danger);
+      }
+      .warning .status-value {
+        color: var(--warning);
+      }
+      .healthy .status-value {
+        color: var(--success);
+      }
+
+      .stock-table {
+        background: white;
+        padding: 25px;
+        border-radius: 15px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      }
+
+      .stock-table table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      .stock-table th {
+        background: #f8f9fa;
+        padding: 12px;
+        text-align: left;
+        font-weight: 500;
+        color: #666;
+      }
+
+      .stock-table td {
+        padding: 12px;
+        border-bottom: 1px solid #eee;
+      }
+
+      .status-badge {
+        padding: 5px 10px;
+        border-radius: 15px;
+        font-size: 0.85em;
+        font-weight: 500;
+      }
+
+      .status-critical {
+        background: #fee2e2;
+        color: #dc2626;
+      }
+
+      .status-warning {
+        background: #fef3c7;
+        color: #d97706;
+      }
+
+      .status-healthy {
+        background: #d1fae5;
+        color: #059669;
+      }
+
+      .action-btn {
+        padding: 8px 16px;
+        border: none;
+        border-radius: 5px;
+        background: var(--primary-color);
+        color: white;
+        cursor: pointer;
+        transition: all 0.3s;
+      }
+
+      .action-btn:hover {
+        background: var(--secondary-color);
+      }
+
+      .chart-container {
+        background: white;
+        padding: 25px;
+        border-radius: 15px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        height: 400px;
+      }
+      .sidebar-header {
+        padding: 20px 0;
+        text-align: center;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .nav-menu {
+        margin-top: 30px;
+      }
+
+      .nav-item {
+        padding: 15px;
+        margin: 5px 0;
+        border-radius: 8px;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+      }
+
+      .nav-item:hover {
+        background: var(--secondary-color);
+        cursor: pointer;
+      }
+
+      .nav-item i {
+        margin-right: 10px;
+        width: 20px;
+        text-align: center;
+      }
+
+      a {
+        text-decoration: none;
+        color: inherit;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <div class="sidebar-header">
+        <h2>IMS Dashboard</h2>
+      </div>
+      <div class="nav-menu">
+        <a href="{{ url_for('main.dashboard') }}">
+          <div class="nav-item"><i class="fas fa-home"></i> Dashboard</div>
+        </a>
+        <a href="{{ url_for('main.add_product') }}">
+          <div class="nav-item"><i class="fas fa-plus"></i> Add Product</div>
+        </a>
+        <a href="{{ url_for('main.monitoring') }}">
+          <div class="nav-item">
+            <i class="fas fa-chart-line"></i> Monitoring
+          </div>
+        </a>
+        <a href="{{ url_for('main.forecasting') }}">
+          <div class="nav-item">
+            <i class="fas fa-chart-bar"></i> Forecasting
+          </div>
+        </a>
+      </div>
+    </div>
+
+    <div class="main-content">
+      <div class="monitoring-container">
+        <div class="status-overview">
+          <div class="status-card critical">
+            <h3>Critical Stock</h3>
+            <div class="status-value">{{ alerts.critical|length }}</div>
+            <p>Products below minimum stock</p>
+          </div>
+          <div class="status-card warning">
+            <h3>Warning Level</h3>
+            <div class="status-value">{{ alerts.warning|length }}</div>
+            <p>Products near minimum stock</p>
+          </div>
+          <div class="status-card healthy">
+            <h3>Healthy Stock</h3>
+            <div class="status-value">{{ alerts.healthy|length }}</div>
+            <p>Products with adequate stock</p>
+          </div>
+        </div>
+
+        <div class="stock-table">
+          <h3 style="margin-bottom: 20px">Stock Status Details</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Product Name</th>
+                <th>Current Stock</th>
+                <th>Minimum Stock</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for product in alerts.critical %}
+              <tr>
+                <td>{{ product.name }}</td>
+                <td>{{ product.current_stock }}</td>
+                <td>{{ product.minimum_stock }}</td>
+                <td>
+                  <span class="status-badge status-critical">Critical</span>
+                </td>
+                <td><button class="action-btn">Restock</button></td>
+              </tr>
+              {% endfor %} {% for product in alerts.warning %}
+              <tr>
+                <td>{{ product.name }}</td>
+                <td>{{ product.current_stock }}</td>
+                <td>{{ product.minimum_stock }}</td>
+                <td>
+                  <span class="status-badge status-warning">Warning</span>
+                </td>
+                <td><button class="action-btn">Review</button></td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+        <div class="chart-container">
+          <h3 style="margin-bottom: 20px">Stock Level Trends</h3>
+          <div id="stock-trend"></div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script>
+      // Add your stock trend visualization here
+    </script>
+  </body>
+</html>

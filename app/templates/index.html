@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Inventory Management System</title>
+    <style>
+      .nav-links {
+        margin: 20px 0;
+        padding: 10px;
+        background: #f5f5f5;
+      }
+      .nav-links a {
+        margin-right: 15px;
+        padding: 5px 10px;
+        text-decoration: none;
+        color: #333;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Welcome to Inventory Management System</h1>
+
+    <div class="nav-links">
+      <a href="{{ url_for('main.add_product') }}">Add New Product</a>
+      <a href="{{ url_for('main.record_sale') }}">Record Sale</a>
+      <a href="{{ url_for('main.monitoring') }}">Stock Monitoring</a>
+      <a href="{{ url_for('main.forecasting') }}">Sales Forecasting</a>
+      <a href="{{ url_for('main.generate_report') }}">Generate Report</a>
+      <a href="{{ url_for('main.dashboard') }}">Dashboard</a>
+    </div>
+
+    <h2>Products List</h2>
+    <table border="1">
+      <tr>
+        <th>Name</th>
+        <th>Current Stock</th>
+        <th>Minimum Stock</th>
+        <th>Unit Price</th>
+        <th>Status</th>
+      </tr>
+      {% for product in products %}
+      <tr>
+        <td>{{ product.name }}</td>
+        <td>{{ product.current_stock }}</td>
+        <td>{{ product.minimum_stock }}</td>
+        <td>${{ "%.2f"|format(product.unit_price) }}</td>
+        <td>
+          {% if product.current_stock <= product.minimum_stock %}
+          <span style="color: red">Low Stock!</span>
+          {% else %}
+          <span style="color: green">In Stock</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </table>
+  </body>
+</html>

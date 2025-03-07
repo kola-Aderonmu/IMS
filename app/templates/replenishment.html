@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Stock Replenishment Suggestions</title>
+    <style>
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 20px 0;
+      }
+      th,
+      td {
+        padding: 12px;
+        text-align: left;
+        border-bottom: 1px solid #ddd;
+      }
+      th {
+        background-color: #f5f5f5;
+      }
+      .urgent {
+        background-color: #ffe6e6;
+      }
+      .warning {
+        background-color: #fff3e6;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Stock Replenishment Suggestions</h1>
+
+    <table>
+      <tr>
+        <th>Product</th>
+        <th>Current Stock</th>
+        <th>Daily Sales Rate</th>
+        <th>Days Until Minimum</th>
+        <th>Suggested Order</th>
+      </tr>
+      {% for suggestion in suggestions %}
+      <tr
+        class="{% if suggestion.days_until_minimum <= 3 %}urgent {% elif suggestion.days_until_minimum <= 7 %}warning{% endif %}"
+      >
+        <td>{{ suggestion.product.name }}</td>
+        <td>{{ suggestion.product.current_stock }}</td>
+        <td>{{ "%.2f"|format(suggestion.daily_rate) }}</td>
+        <td>{{ suggestion.days_until_minimum }}</td>
+        <td>{{ suggestion.suggested_order }}</td>
+      </tr>
+      {% endfor %}
+    </table>
+
+    <div>
+      <h3>Legend:</h3>
+      <p class="urgent">Red: Critical - Less than 3 days of stock remaining</p>
+      <p class="warning">
+        Yellow: Warning - Less than 7 days of stock remaining
+      </p>
+    </div>
+
+    <a href="{{ url_for('main.index') }}">Back to Home</a>
+  </body>
+</html>
