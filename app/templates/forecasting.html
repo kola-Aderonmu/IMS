@@ -298,7 +298,7 @@
     <!-- Sidebar -->
     <div class="sidebar">
       <div class="sidebar-header">
-        <h2>IMS Dashboard</h2>
+        <h2>❄IMS Dashboard</h2>
       </div>
       <div class="nav-menu">
         <a href="{{ url_for('main.dashboard') }}">
@@ -323,9 +323,21 @@
     <div class="main-content">
       <div class="header-section">
         <a href="{{ url_for('main.dashboard') }}" class="return-btn">
-          <i class="fas fa-arrow-left"></i> Back to Dashboard
+          <i class="fas fa-arrow-left"></i> Back
         </a>
-        <h2>Sales Forecasting</h2>
+        <h2
+          style="
+            color: #3e3ee3;
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            margin-left: 280px;
+            padding: 10px 0;
+            border-bottom: 2px solid #e2e8f0;
+          "
+        >
+          Sales Forecasting
+        </h2>
       </div>
 
       <!-- Replace the card-based layout with this table structure -->
@@ -376,7 +388,13 @@
                 </div>
                 {% if product.forecast_data.recommendation.urgency != 'Stable'
                 %}
-                <button class="action-btn">Place Order</button>
+                <form
+                  action="{{ url_for('main.add_stock', product_id=product.id) }}"
+                  method="GET"
+                >
+                  <button type="submit" class="action-btn">Place Order</button>
+                </form>
+
                 {% endif %}
               </td>
             </tr>

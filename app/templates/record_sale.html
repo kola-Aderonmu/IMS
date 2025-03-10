@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Record Sales - IMS</title>
+    <title>📖Record Sales - IMS</title>
     <link
       href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap"
       rel="stylesheet"
@@ -234,7 +234,7 @@
   <body>
     <div class="sidebar">
       <div class="sidebar-header">
-        <h2>IMS Dashboard</h2>
+        <h2>❄IMS Dashboard</h2>
       </div>
       <div class="nav-menu">
         <a href="{{ url_for('main.dashboard') }}">
@@ -264,10 +264,22 @@
     <div class="main-content">
       <div class="header-section">
         <div class="left-section">
-          <a href="{{ url_for('main.dashboard') }}" class="return-btn">
-            <i class="fas fa-arrow-left"></i> Back to Dashboard
+          <a
+            href="{{ url_for('main.dashboard') }}"
+            class="return-btn"
+            style="font-weight: bolder; font-family: monospace"
+          >
+            <i class="fas fa-arrow-left"></i> Back
           </a>
-          <h2>Record Sales</h2>
+          <h2
+            style="
+              margin-left: 80px;
+              color: #3f37c9;
+              font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            "
+          >
+            Record Sales
+          </h2>
         </div>
         <div class="right-section">
           <button class="submit-btn" onclick="showSaleForm()">
@@ -282,7 +294,8 @@
         <div class="alert alert-{{ category }}">{{ message }}</div>
         {% endfor %} {% endif %} {% endwith %}
 
-        <h2>Record New Sale</h2>
+        <h4>Record New Sale</h4>
+        <br />
         <form method="POST">
           {{ form.csrf_token }}
           <div class="form-group">

@@ -337,49 +337,55 @@ def monitoring():
 def forecasting():
     products = Product.query.all()
     current_date = datetime.now()
-    
+
     for product in products:
         # Get historical sales data for the past 12 months
         historical_sales = db.session.query(
-            func.sum(Sale.quantity),
+            func.sum(Sale.quantity).label("total_quantity"),
             func.strftime('%Y-%m', Sale.sale_date).label('month')
         ).filter(
             Sale.product_id == product.id,
             Sale.sale_date >= (current_date - timedelta(days=365))
         ).group_by('month').all()
-        
+
+        # Convert to list of dictionaries for JSON serialization
+        historical_trend = [{'month': row.month, 'quantity': float(row.total_quantity or 0)} for row in historical_sales]
+
         # Calculate seasonal trends (quarterly)
         seasonal_data = db.session.query(
-            func.sum(Sale.quantity),
+            func.sum(Sale.quantity).label("total_quantity"),
             func.strftime('%m', Sale.sale_date).label('month')
         ).filter(
             Sale.product_id == product.id
         ).group_by('month').all()
-        
+
+        # Convert to list of dictionaries
+        seasonal_pattern = [{'month': row.month, 'quantity': float(row.total_quantity or 0)} for row in seasonal_data]
+
         # Calculate growth pattern
-        if historical_sales:
-            sales_values = [sale[0] for sale in historical_sales if sale[0]]
-            if sales_values:
-                growth_rate = (sales_values[-1] - sales_values[0]) / sales_values[0] if sales_values[0] else 0
+        if historical_trend:
+            sales_values = [row['quantity'] for row in historical_trend]
+            if sales_values and sales_values[0] != 0:
+                growth_rate = (sales_values[-1] - sales_values[0]) / sales_values[0]
             else:
                 growth_rate = 0
         else:
             growth_rate = 0
-            
+
         # Forecast next month's demand
-        avg_monthly_sales = np.mean([sale[0] for sale in historical_sales if sale[0]]) if historical_sales else 0
+        avg_monthly_sales = np.mean([row['quantity'] for row in historical_trend]) if historical_trend else 0
         seasonal_factor = 1.2 if current_date.month in [11, 12] else 1.0  # Holiday season adjustment
         forecast_demand = avg_monthly_sales * (1 + growth_rate) * seasonal_factor
-        
+
         # Add analysis results to product object
         product.forecast_data = {
-            'historical_trend': historical_sales,
-            'seasonal_pattern': seasonal_data,
-            'growth_rate': growth_rate * 100,  # Convert to percentage
+            'historical_trend': historical_trend,
+            'seasonal_pattern': seasonal_pattern,
+            'growth_rate': round(growth_rate * 100, 2),  # Convert to percentage
             'forecast_demand': round(forecast_demand, 2),
-            'recommendation': get_recommendation(product, forecast_demand)
+            'recommendation': get_recommendation(product, forecast_demand)  
         }
-    
+
     return render_template('forecasting.html', products=products)
 
 def get_recommendation(product, forecast_demand):

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>IMS Dashboard</title>
+    <title>❄IMS Dashboard</title>
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <link
       href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap"
@@ -318,7 +318,7 @@
       <!-- Sidebar -->
       <div class="sidebar">
         <div class="sidebar-header">
-          <h2>IMS Dashboard</h2>
+          <h2>❄IMS Dashboard</h2>
         </div>
         <div class="nav-menu">
           <a href="{{ url_for('main.add_product') }}">
@@ -362,10 +362,6 @@
             <h3>Low Stock Items</h3>
             <div class="value">{{ low_stock_products|length }}</div>
           </div>
-          <!-- <div class="stat-card">
-            <h3>Total Revenue</h3>
-            <div class="value">${{ "%.2f"|format(total_revenue) }}</div>
-          </div> -->
         </div>
 
         <div class="dashboard-grid">
@@ -385,14 +381,39 @@
           <!-- Inventory Stats Card -->
           <div class="dashboard-card">
             <h3>Inventory Overview</h3>
+            <br />
             <div class="stat-item">
-              <span>Out of Stock Items: </span>
-              <span class="value">{{ out_of_stock }} <br /></span>
+              <span
+                style="
+                  font-family: 'Lucida Sans', 'Lucida Sans Regular',
+                    'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana,
+                    sans-serif;
+                  font-weight: 500;
+                "
+                >Out of Stock Items:
+              </span>
+              <span
+                class="value"
+                style="margin-left: 80px; color: blue; font-weight: bold"
+                ><strong>{{ out_of_stock }}</strong> <br
+              /></span>
             </div>
             <div class="stat-item">
-              <span>Total Inventory Value</span>
-              <span class="value"
-                >₦{{ "%.2f"|format(total_inventory_value) }}</span
+              <span
+                style="
+                  font-family: 'Lucida Sans', 'Lucida Sans Regular',
+                    'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana,
+                    sans-serif;
+                  font-weight: 500;
+                "
+                >Total Inventory Value</span
+              >
+              <span
+                class="value"
+                style="margin-left: 20px; color: blue; font-weight: bold"
+                ><strong
+                  >₦{{ "%.2f"|format(total_inventory_value) }}</strong
+                ></span
               >
             </div>
           </div>
@@ -405,7 +426,7 @@
               <div class="sale-item">
                 <span class="product-name">{{ product.name }}</span>
                 <span class="sale-details">
-                  {{ sale.quantity }} units | ${{ "%.2f"|format(sale.quantity *
+                  {{ sale.quantity }} units | ₦{{ "%.2f"|format(sale.quantity *
                   product.unit_price) }}
                 </span>
                 <span class="sale-date"

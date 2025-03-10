@@ -151,6 +151,29 @@
     </style>
   </head>
   <body>
+    <a
+      href="{{ url_for('main.dashboard') }}"
+      style="
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin-left: 5px;
+        padding: 10px 16px;
+        color: white;
+        background-color: #2d53d0;
+        text-decoration: none;
+        border-radius: 8px;
+        font-weight: bold;
+        box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.2);
+        transition: background-color 0.3s ease;
+      "
+      onmouseover="this.style.backgroundColor='#1E3A8A';"
+      onmouseout="this.style.backgroundColor='#1E40AF';"
+    >
+      <i class="fas fa-arrow-left"></i>
+      <span>Back</span>
+    </a>
+
     <div class="report-container">
       <div class="report-header">
         <h2>Generate Report</h2>
