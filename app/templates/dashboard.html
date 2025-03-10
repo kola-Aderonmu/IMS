@@ -373,10 +373,10 @@
           <div class="dashboard-card">
             <h3>Best Selling Products</h3>
             <div class="product-list">
-              {% for product, total in best_selling_products %}
+              {% for product in best_selling_products %}
               <div class="product-item">
-                <span class="product-name">{{ product }}</span>
-                <span class="product-sales">{{ total }} units</span>
+                <span class="product-name">{{ product[0] }}</span>
+                <span class="product-sales">{{ product[1] }} units</span>
               </div>
               {% endfor %}
             </div>
@@ -386,8 +386,8 @@
           <div class="dashboard-card">
             <h3>Inventory Overview</h3>
             <div class="stat-item">
-              <span>Out of Stock Items</span>
-              <span class="value">{{ out_of_stock }}</span>
+              <span>Out of Stock Items: </span>
+              <span class="value">{{ out_of_stock }} <br /></span>
             </div>
             <div class="stat-item">
               <span>Total Inventory Value</span>
@@ -489,30 +489,30 @@
         <div class="dashboard-charts">
           <div class="chart-row">
             <!-- Sales Overview Card -->
-            <div class="chart-card">
+            <!-- <div class="chart-card">
               <h3>Sales Overview</h3>
-              <canvas id="salesBarChart"></canvas>
-            </div>
+              <div id="salesOverviewChart" style="height: 300px"></div>
+            </div> -->
 
             <!-- Product Distribution Card -->
-            <div class="chart-card">
+            <!-- <div class="chart-card">
               <h3>Stock Distribution</h3>
               <canvas id="stockPieChart"></canvas>
-            </div>
+            </div> -->
           </div>
 
           <div class="chart-row">
             <!-- Revenue Trends Card -->
-            <div class="chart-card">
+            <!-- <div class="chart-card">
               <h3>Revenue Trends</h3>
               <canvas id="revenueLineChart"></canvas>
-            </div>
+            </div> -->
 
             <!-- Top Products Card -->
-            <div class="chart-card">
+            <!-- <div class="chart-card">
               <h3>Top Products</h3>
               <canvas id="topProductsChart"></canvas>
-            </div>
+            </div> -->
           </div>
         </div>
       </div>

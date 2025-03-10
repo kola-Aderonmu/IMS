@@ -11,36 +11,213 @@
       rel="stylesheet"
     />
     <style>
-      /* Use the same styles as add_product.html */
-      /* Add this specific style */
-      .stock-form {
-        max-width: 400px;
-        margin: 20px auto;
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: "Poppins", sans-serif;
+      }
+
+      :root {
+        --primary-color: #4361ee;
+        --secondary-color: #3f37c9;
+        --success-color: #4cc9f0;
+        --background-color: #f8f9fa;
+      }
+
+      body {
+        background: var(--background-color);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .form-container {
+        background: white;
+        padding: 2rem;
+        border-radius: 15px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+        width: 100%;
+        max-width: 500px;
+      }
+
+      .stock-header {
+        text-align: center;
+        margin-bottom: 2rem;
+      }
+
+      .stock-header h2 {
+        color: var(--primary-color);
+        font-size: 1.8rem;
+        margin-bottom: 0.5rem;
+      }
+
+      .current-stock {
+        background: #e8f0fe;
+        padding: 1rem;
+        border-radius: 10px;
+        margin-bottom: 2rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+      }
+
+      .current-stock i {
+        font-size: 1.5rem;
+        color: var(--primary-color);
+      }
+
+      .form-group {
+        margin-bottom: 1.5rem;
+      }
+
+      .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        color: #4a5568;
+        font-weight: 500;
+      }
+
+      .form-control {
+        width: 100%;
+        padding: 0.75rem;
+        border: 2px solid #e2e8f0;
+        border-radius: 8px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+      }
+
+      .form-control:focus {
+        border-color: var(--primary-color);
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
+      }
+      .alert {
+        padding: 1rem;
+        margin-bottom: 1rem;
+        border-radius: 8px;
+        transition: opacity 0.5s ease-in-out;
+      }
+
+      .alert-success {
+        background-color: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+      }
+
+      .fade {
+        opacity: 1;
+      }
+
+      .fade.hide {
+        opacity: 0;
+      }
+      .alert-dismissible .btn-close {
+        position: absolute;
+        right: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        font-size: 1.25rem;
+        cursor: pointer;
+      }
+
+      .submit-btn {
+        width: 100%;
+        padding: 0.75rem;
+        background: var(--primary-color);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 1rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      .submit-btn:hover {
+        background: var(--secondary-color);
+        transform: translateY(-1px);
+      }
+
+      .back-link {
+        display: block;
+        text-align: center;
+        margin-top: 1rem;
+        color: #718096;
+        text-decoration: none;
+        transition: color 0.3s ease;
+      }
+
+      .back-link:hover {
+        color: var(--primary-color);
       }
     </style>
   </head>
   <body>
-    <div class="main-content">
-      <div class="form-container">
-        <h2>Add Stock - {{ product.name }}</h2>
-        <form method="POST" class="stock-form">
-          <div class="form-group">
-            <label>Current Stock: {{ product.current_stock }}</label>
+    <div class="form-container">
+      <div class="stock-header">
+        <div id="alertContainer">
+          {% with messages = get_flashed_messages(with_categories=true) %} {% if
+          messages %} {% for category, message in messages %}
+          <div
+            class="alert alert-{{ category }} fade show"
+            role="alert"
+            id="autoCloseAlert"
+          >
+            {{ message }}
           </div>
-          <div class="form-group">
-            <label for="quantity">Quantity to Add</label>
-            <input
-              type="number"
-              name="quantity"
-              id="quantity"
-              min="1"
-              required
-              class="form-control"
-            />
-          </div>
-          <button type="submit" class="submit-btn">Add Stock</button>
-        </form>
+          {% endfor %} {% endif %} {% endwith %}
+        </div>
+        <h2>Add Stock</h2>
+        <p>{{ product.name }}</p>
       </div>
+
+      <div class="current-stock">
+        <i class="fas fa-box"></i>
+        <div>
+          <strong>Current Stock Level</strong>
+          <p>{{ product.current_stock }} units</p>
+        </div>
+      </div>
+
+      <form method="POST" class="stock-form">
+        <div class="form-group">
+          <label for="quantity">Quantity to Add</label>
+          <input
+            type="number"
+            name="quantity"
+            id="quantity"
+            min="1"
+            required
+            class="form-control"
+            placeholder="Enter quantity"
+          />
+        </div>
+        <button type="submit" class="submit-btn">
+          <i class="fas fa-plus-circle"></i> Update Stock
+        </button>
+      </form>
+
+      <a href="{{ url_for('main.dashboard') }}" class="back-link">
+        <i class="fas fa-arrow-left"></i> Back to Dashboard
+      </a>
     </div>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        let alert = document.getElementById("autoCloseAlert");
+        if (alert) {
+          setTimeout(function () {
+            alert.style.opacity = "0";
+            setTimeout(function () {
+              alert.remove();
+            }, 500);
+          }, 3000);
+        }
+      });
+    </script>
   </body>
 </html>

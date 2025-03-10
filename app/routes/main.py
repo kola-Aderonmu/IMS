@@ -1,4 +1,4 @@
-from flask import Blueprint, send_file, request, render_template, redirect, url_for, flash
+from flask import Blueprint, send_file, request, render_template, redirect, url_for, flash, send_file
 from app.models.product import Product
 from app.services.replenishment import get_replenishment_suggestions
 from app.forms import ProductForm, SaleForm
@@ -70,8 +70,8 @@ def dashboard():
 
     # Get sales trend data
     sales_trend = db.session.query(
-        func.date(Sale.sale_date),
-        func.sum(Sale.quantity)
+        func.date(Sale.sale_date).label('sale_date'),  
+        func.sum(Sale.quantity).label('total')  
     ).group_by(
         func.date(Sale.sale_date)
     ).order_by(
@@ -80,20 +80,23 @@ def dashboard():
 
     # Chart data preparation
     sales_data = {
-        'labels': [sale[0].strftime('%Y-%m-%d') for sale in sales_trend],
-        'values': [sale[1] for sale in sales_trend]
+        'labels': [str(sale.sale_date) for sale in sales_trend],  
+        'values': [float(sale.total) for sale in sales_trend]  
     }
-    
+
     stock_data = {
-        'labels': [p.name for p in products],
-        'values': [p.current_stock for p in products]
+        'labels': [p.name for p in Product.query.all()],
+        'values': [p.current_stock for p in Product.query.all()]
     }
+
     
+
     revenue_data = {
-        'labels': [sale[0].strftime('%Y-%m-%d') for sale in sales_trend],
-        'values': [sale[1] * products[0].unit_price for sale in sales_trend]
-    }
-    
+        'labels': [datetime.strptime(str(sale[0]), '%Y-%m-%d').strftime('%Y-%m-%d') for sale in sales_trend],
+        'values': [float(sale[1]) for sale in sales_trend]
+    }   
+  
+
     top_products = {
         'labels': [product[0] for product in best_selling_products],
         'values': [product[1] for product in best_selling_products]
@@ -113,7 +116,6 @@ def dashboard():
         revenue_data=revenue_data,
         top_products=top_products
     )
-
 
 def create_sales_graph(sales_data):
     import plotly.express as px
@@ -149,41 +151,21 @@ def add_product():
 
 
 
-# @bp.route('/record_sale', methods=['GET', 'POST'])
-# def record_sale():
-#     form = SaleForm()
-#     products = Product.query.all()
-    
-#     # Fix the price attribute by using unit_price instead
-#     form.product_id.choices = [(p.id, f"{p.name} - ${p.unit_price}") for p in products]
-    
-#     if form.validate_on_submit():
-#         product = Product.query.get(form.product_id.data)
-#         if product.current_stock >= form.quantity.data:
-#             sale = Sale(
-#                 product_id=form.product_id.data,
-#                 quantity=form.quantity.data,
-#                 unit_price=product.unit_price,
-#                 total_amount=product.unit_price * form.quantity.data
-#             )
-            
-#             product.current_stock -= form.quantity.data
-#             db.session.add(sale)
-#             db.session.commit()
-            
-#             flash('Sale recorded successfully!', 'success')
-#             return redirect(url_for('main.record_sale'))
-#         else:
-#             flash(f'Not enough stock available! Current stock: {product.current_stock}', 'error')
-    
-#     return render_template('record_sale.html', form=form)
+
 
 
 @bp.route('/record_sale', methods=['GET', 'POST'])
 def record_sale():
+    analytics_data = {
+        'dates': [],
+        'units': [],
+        'revenue': []
+    }
     form = SaleForm()
+    
+    # Get products for form dropdown
     products = Product.query.all()
-    form.product_id.choices = [(p.id, f"{p.name} - ${p.unit_price}") for p in products]
+    form.product_id.choices = [(p.id, f"{p.name} - ₦{p.unit_price}") for p in products]
     
     if form.validate_on_submit():
         product = Product.query.get(form.product_id.data)
@@ -191,26 +173,80 @@ def record_sale():
             sale = Sale(
                 product_id=form.product_id.data,
                 quantity=form.quantity.data,
+                sale_date=datetime.now(),
                 unit_price=product.unit_price,
                 total_amount=product.unit_price * form.quantity.data
             )
             
             product.current_stock -= form.quantity.data
-            update_sales_analytics(product, sale)  # Correct indentation
             db.session.add(sale)
             db.session.commit()
             
             flash('Sale recorded successfully!', 'success')
             return redirect(url_for('main.record_sale'))
-        
-        flash(f'Not enough stock available! Current stock: {product.current_stock}', 'error')
+        else:
+            flash(f'Insufficient stock! Available: {product.current_stock}', 'danger')
     
-    return render_template('record_sale.html', form=form)
+    # Calculate sales summaries
+    today = datetime.now().date()
+    week_ago = today - timedelta(days=7)
+    month_ago = today - timedelta(days=30)
+    
+    today_sales = db.session.query(func.sum(Sale.total_amount)).filter(
+        func.date(Sale.sale_date) == today
+    ).scalar() or 0
+    
+    weekly_sales = db.session.query(func.sum(Sale.total_amount)).filter(
+        Sale.sale_date >= week_ago
+    ).scalar() or 0
+    
+    monthly_sales = db.session.query(func.sum(Sale.total_amount)).filter(
+        Sale.sale_date >= month_ago
+    ).scalar() or 0
+    
+    # Get recent sales history
+    recent_sales = db.session.query(
+        Sale.sale_date,
+        Product.name.label('product_name'),
+        Sale.quantity,
+        Sale.total_amount,
+        Sale.customer_name
+    ).join(Product).order_by(Sale.sale_date.desc()).limit(10).all()
+    
+    sales_history = []
+    for sale in recent_sales:
+        sales_history.append({
+            'date': sale.sale_date.strftime('%Y-%m-%d %H:%M'),
+            'product_name': sale.product_name,
+            'quantity': sale.quantity,
+            'amount': sale.total_amount,
+            'customer_name': sale.customer_name or 'Walk-in Customer'
+        })
+    
+    return render_template('record_sale.html',
+        form=form,
+        analytics_data=analytics_data,
+        today_sales="{:,.2f}".format(today_sales),
+        weekly_sales="{:,.2f}".format(weekly_sales),
+        monthly_sales="{:,.2f}".format(monthly_sales),
+        recent_sales=sales_history
+    )
 
             
-            # Update analytics
-    update_sales_analytics(product, sale)
-            
+           # Get analytics data
+    daily_sales = db.session.query(
+        func.date(Sale.sale_date).label('date'),
+        func.sum(Sale.quantity).label('units'),
+        func.sum(Sale.total_amount).label('revenue')
+    ).group_by(func.date(Sale.sale_date))\
+    .order_by(func.date(Sale.sale_date).desc())\
+    .limit(30).all()
+
+    analytics_data = {
+        'dates': [sale.date.strftime('%Y-%m-%d') if hasattr(sale.date, 'strftime') else sale.date for sale in daily_sales],
+        'units': [int(sale.units) for sale in daily_sales],
+        'revenue': [float(sale.revenue) for sale in daily_sales]
+    }
             # Generate invoice
     invoice_pdf = generate_invoice(sale, product)
             
@@ -267,7 +303,7 @@ def generate_invoice(sale, product):
 
 
 @bp.route('/product/<int:product_id>/add-stock', methods=['GET', 'POST'])
-def add_stock(product_id):
+def product_add_stock(product_id):
     product = Product.query.get_or_404(product_id)
     
     if request.method == 'POST':
@@ -275,8 +311,8 @@ def add_stock(product_id):
         if quantity > 0:
             product.current_stock += quantity
             db.session.commit()
-            flash(f'Added {quantity} units to {product.name}', 'success')
-            return redirect(url_for('main.product_list'))
+            flash(f'Success! Added {quantity} units to {product.name}. New stock level: {product.current_stock}', 'success')
+            return redirect(url_for('main.dashboard'))
     
     return render_template('add_stock.html', product=product)
 
@@ -363,13 +399,113 @@ def get_recommendation(product, forecast_demand):
     }
 
 
-@bp.route('/generate_report')
+# @bp.route('/generate_report')
+# def generate_report():
+#     products = Product.query.all()
+#     sales = Sale.query.all()
+#     pdf = ReportGenerator.generate_inventory_report(products, sales)
+#     return send_file(
+#         pdf,
+#         download_name=f'inventory_report_{datetime.now().strftime("%Y%m%d")}.pdf',
+#         as_attachment=True
+#     )
+
+@bp.route('/generate-report', methods=['GET', 'POST'])
 def generate_report():
-    products = Product.query.all()
-    sales = Sale.query.all()
-    pdf = ReportGenerator.generate_inventory_report(products, sales)
-    return send_file(
-        pdf,
-        download_name=f'inventory_report_{datetime.now().strftime("%Y%m%d")}.pdf',
-        as_attachment=True
-    )
+    if request.method == 'POST':
+        report_type = request.form.get('report_type')
+        start_date = datetime.strptime(request.form.get('start_date'), '%Y-%m-%d')
+        end_date = datetime.strptime(request.form.get('end_date'), '%Y-%m-%d')
+        
+        if report_type == 'sales':
+            # Get sales data between dates
+            sales_data = db.session.query(
+                Sale.sale_date,
+                Product.name,
+                Sale.quantity,
+                Product.unit_price,
+                (Sale.quantity * Product.unit_price).label('total_amount')
+            ).join(Product).filter(
+                Sale.sale_date.between(start_date, end_date)
+            ).all()
+            
+            # Create DataFrame
+            df = pd.DataFrame(sales_data, columns=['Date', 'Product', 'Quantity', 'Unit Price', 'Total Amount'])
+            
+            # Generate Excel file
+            output = io.BytesIO()
+            with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+                df.to_excel(writer, sheet_name='Sales Report', index=False)
+            
+            output.seek(0)
+            return send_file(
+                output,
+                mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                as_attachment=True,
+                download_name=f'sales_report_{start_date.date()}_{end_date.date()}.xlsx'
+            )
+            
+        elif report_type == 'inventory':
+            # Get inventory data
+            inventory_data = db.session.query(
+                Product.name,
+                Product.current_stock,
+                Product.minimum_stock,
+                Product.unit_price,
+                (Product.current_stock * Product.unit_price).label('total_value')
+            ).all()
+            
+            df = pd.DataFrame(inventory_data, columns=['Product', 'Current Stock', 'Minimum Stock', 'Unit Price', 'Total Value'])
+            
+            output = io.BytesIO()
+            with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+                df.to_excel(writer, sheet_name='Inventory Report', index=False)
+            
+            output.seek(0)
+            return send_file(
+                output,
+                mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                as_attachment=True,
+                download_name=f'inventory_report_{datetime.now().date()}.xlsx'
+            )
+            
+        elif report_type == 'financial':
+            # Get financial data
+            financial_data = db.session.query(
+                Sale.sale_date,
+                func.sum(Sale.quantity * Product.unit_price).label('revenue')
+            ).join(Product).filter(
+                Sale.sale_date.between(start_date, end_date)
+            ).group_by(Sale.sale_date).all()
+            
+            df = pd.DataFrame(financial_data, columns=['Date', 'Revenue'])
+            
+            output = io.BytesIO()
+            with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+                df.to_excel(writer, sheet_name='Financial Report', index=False)
+            
+            output.seek(0)
+            return send_file(
+                output,
+                mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                as_attachment=True,
+                download_name=f'financial_report_{start_date.date()}_{end_date.date()}.xlsx'
+            )
+    
+    return render_template('generate_report.html')
+
+
+@bp.route('/add_stock/<int:product_id>', methods=['GET', 'POST'])
+def add_stock(product_id):
+    product = Product.query.get_or_404(product_id)
+    
+    if request.method == 'POST':
+        quantity = int(request.form.get('quantity'))
+        product.current_stock += quantity
+        db.session.commit()
+        
+        flash(f'Successfully added {quantity} units to {product.name}', 'success')
+        return redirect(url_for('main.dashboard'))
+    
+    return render_template('add_stock.html', product=product)
+ 

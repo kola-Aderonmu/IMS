@@ -12,8 +12,7 @@ class ProductForm(FlaskForm):
     submit = SubmitField('Submit')
 
 class SaleForm(FlaskForm):
-    product_id = SelectField('Product', coerce=int, validators=[DataRequired()])
+    product_id = SelectField('Product', coerce=int)
     quantity = IntegerField('Quantity', validators=[DataRequired(), NumberRange(min=1)])
     customer_name = StringField('Customer Name')
-    sale_date = DateField('Sale Date', validators=[DataRequired()])
-    unit_price = DecimalField('Unit Price', validators=[DataRequired()])
+
