@@ -1,6 +1,7 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, FloatField, IntegerField, TextAreaField, SubmitField, SelectField
-from wtforms.validators import DataRequired
+from wtforms import StringField, FloatField, IntegerField, TextAreaField, SubmitField, SelectField, DateField, DecimalField
+from wtforms.validators import DataRequired, NumberRange
+
 
 class ProductForm(FlaskForm):
     name = StringField('Product Name', validators=[DataRequired()])
@@ -12,5 +13,7 @@ class ProductForm(FlaskForm):
 
 class SaleForm(FlaskForm):
     product_id = SelectField('Product', coerce=int, validators=[DataRequired()])
-    quantity = IntegerField('Quantity', validators=[DataRequired()])
-    submit = SubmitField('Record Sale')
+    quantity = IntegerField('Quantity', validators=[DataRequired(), NumberRange(min=1)])
+    customer_name = StringField('Customer Name')
+    sale_date = DateField('Sale Date', validators=[DataRequired()])
+    unit_price = DecimalField('Unit Price', validators=[DataRequired()])

@@ -157,6 +157,141 @@
         text-decoration: none;
         color: inherit;
       }
+      .table-container {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        margin: 20px 0;
+        overflow-x: auto;
+      }
+
+      .forecast-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        font-size: 14px;
+      }
+
+      .forecast-table thead th {
+        background: #f8f9fa;
+        padding: 15px;
+        text-align: left;
+        font-weight: 600;
+        color: #444;
+        border-bottom: 2px solid #eee;
+        white-space: nowrap;
+      }
+
+      .forecast-table tbody tr {
+        transition: all 0.3s;
+      }
+
+      .forecast-table tbody tr:hover {
+        background: #f8f9fa;
+      }
+
+      .forecast-table td {
+        padding: 15px;
+        border-bottom: 1px solid #eee;
+        vertical-align: middle;
+      }
+
+      .status-badge {
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 500;
+      }
+
+      .status-ok {
+        background: #d1fae5;
+        color: #059669;
+      }
+
+      .status-low {
+        background: #fee2e2;
+        color: #dc2626;
+      }
+
+      .action-btn {
+        background: #4361ee;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.3s;
+      }
+
+      .action-btn:hover {
+        background: #3730a3;
+        transform: translateY(-1px);
+      }
+
+      .status-text {
+        color: #059669;
+        font-weight: 500;
+      }
+
+      .forecast-trend {
+        min-width: 120px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+      }
+
+      tr.warning {
+        background: #fff7ed;
+      }
+
+      tr.warning:hover {
+        background: #ffedd5;
+      }
+
+      .growth-indicator {
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-weight: 500;
+      }
+
+      .growth-indicator.positive {
+        background: #dcfce7;
+        color: #15803d;
+      }
+
+      .growth-indicator.negative {
+        background: #fee2e2;
+        color: #dc2626;
+      }
+
+      .seasonal-chart {
+        height: 40px;
+        width: 120px;
+        background: #f8fafc;
+        border-radius: 4px;
+      }
+
+      .status-immediate {
+        background: #fee2e2;
+        color: #dc2626;
+      }
+
+      .status-soon {
+        background: #fef3c7;
+        color: #b45309;
+      }
+
+      .status-stable {
+        background: #dcfce7;
+        color: #15803d;
+      }
+
+      .recommendation-text {
+        margin-bottom: 8px;
+        font-size: 13px;
+        color: #4b5563;
+      }
     </style>
   </head>
   <body>
@@ -193,28 +328,64 @@
         <h2>Sales Forecasting</h2>
       </div>
 
-      <div class="forecast-grid">
-        {% if forecasting_data %} {% for item in forecasting_data %}
-        <div class="forecast-card">
-          <h3>{{ item.name }}</h3>
-          <div class="forecast-value">{{ item.forecast_value }}</div>
-          <p>Predicted sales for next 30 days</p>
-          <div
-            class="trend-indicator {% if item.trend > 0 %}trend-up{% else %}trend-down{% endif %}"
-          >
-            <i
-              class="fas fa-arrow-{% if item.trend > 0 %}up{% else %}down{% endif %}"
-            ></i>
-            {{ item.trend }}% compared to last month
-          </div>
-        </div>
-        {% endfor %} {% else %}
-        <div class="forecast-card">
-          <h3>No Products Available</h3>
-          <p>Add products to see forecasting data</p>
-        </div>
-        {% endif %}
+      <!-- Replace the card-based layout with this table structure -->
+      <div class="table-container">
+        <table class="forecast-table">
+          <thead>
+            <tr>
+              <th>Product Name</th>
+              <th>Current Stock</th>
+              <th>Forecast Demand</th>
+              <th>Growth Rate</th>
+              <th>Seasonal Impact</th>
+              <th>Status</th>
+              <th>Recommendation</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for product in products %}
+            <tr
+              class="{% if product.current_stock <= product.minimum_stock %}warning{% endif %}"
+            >
+              <td>{{ product.name }}</td>
+              <td>{{ product.current_stock }}</td>
+              <td>{{ product.forecast_data.forecast_demand }}</td>
+              <td>
+                <span
+                  class="growth-indicator {% if product.forecast_data.growth_rate > 0 %}positive{% else %}negative{% endif %}"
+                >
+                  {{ "%.1f"|format(product.forecast_data.growth_rate) }}%
+                </span>
+              </td>
+              <td>
+                <div
+                  class="seasonal-chart"
+                  data-seasonal="{{ product.forecast_data.seasonal_pattern|tojson }}"
+                ></div>
+              </td>
+              <td>
+                <span
+                  class="status-badge status-{{ product.forecast_data.recommendation.urgency|lower }}"
+                >
+                  {{ product.forecast_data.recommendation.urgency }}
+                </span>
+              </td>
+              <td>
+                <div class="recommendation-text">
+                  {{ product.forecast_data.recommendation.action }}
+                </div>
+                {% if product.forecast_data.recommendation.urgency != 'Stable'
+                %}
+                <button class="action-btn">Place Order</button>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
       </div>
+
+      <!-- # Trend Analysis -->
 
       <div class="forecast-chart">
         <h3>Sales Trend Analysis</h3>
