@@ -27,6 +27,10 @@ from reportlab.lib.pagesizes import letter
 bp = Blueprint('main', __name__)
 
 
+@bp.route('/')
+def welcome():
+    return render_template('welcome.html')
+
 @bp.route('/dashboard')
 def dashboard():
     # Calculate total sales for last 30 days
@@ -328,8 +332,24 @@ def replenishment():
 
 @bp.route('/monitoring')
 def monitoring():
+    # Get stock alerts
     alerts = StockMonitor.get_stock_alerts()
-    return render_template('monitoring.html', alerts=alerts)
+    
+    # Get all products with their details
+    products = Product.query.all()
+    
+    # Create a dictionary of product details
+    product_data = {
+        product.id: {
+            'name': product.name,
+            'stock': product.current_stock,
+            'description': product.description
+        } for product in products
+    }
+    
+    return render_template('monitoring.html', 
+                         alerts=alerts,
+                         products=product_data)
 
 
 
