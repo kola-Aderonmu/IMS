@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>IMS - Login</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <style>
+      :root {
+        --primary-color: #4361ee;
+        --success-color: #2ecc71;
+        --error-color: #e74c3c;
+        --text-color: #2d3748;
+        --light-text: #718096;
+        --bg-color: #f7fafc;
+        --card-bg: #ffffff;
+        --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+          0 4px 6px -2px rgba(0, 0, 0, 0.05);
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background-color: var(--bg-color);
+        color: var(--text-color);
+        line-height: 1.6;
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-image: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      }
+
+      .login-container {
+        width: 400px;
+        background-color: var(--card-bg);
+        border-radius: 12px;
+        box-shadow: var(--shadow);
+        overflow: hidden;
+        position: relative;
+      }
+
+      .login-header {
+        padding: 30px 30px 20px;
+        text-align: center;
+      }
+
+      .login-header h2 {
+        font-size: 24px;
+        font-weight: 600;
+        color: var(--text-color);
+        margin-bottom: 8px;
+      }
+
+      .login-header p {
+        color: var(--light-text);
+        font-size: 16px;
+      }
+
+      .login-form {
+        padding: 0 30px 30px;
+      }
+
+      .form-group {
+        margin-bottom: 20px;
+        position: relative;
+      }
+
+      .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 500;
+        color: var(--text-color);
+        font-size: 14px;
+      }
+
+      .form-group input {
+        width: 100%;
+        padding: 12px 15px;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        font-size: 16px;
+        transition: all 0.3s;
+      }
+
+      .form-group input:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.2);
+      }
+
+      .form-group i {
+        position: absolute;
+        right: 15px;
+        top: 40px;
+        color: var(--light-text);
+      }
+
+      .btn-login {
+        width: 100%;
+        padding: 12px;
+        background-color: var(--primary-color);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background-color 0.3s;
+      }
+
+      .btn-login:hover {
+        background-color: #3652d9;
+      }
+
+      .error-message {
+        color: var(--error-color);
+        text-align: center;
+        margin-top: 15px;
+        font-size: 14px;
+      }
+
+      .back-link {
+        text-align: center;
+        margin-top: 20px;
+        font-size: 14px;
+      }
+
+      .back-link a {
+        color: var(--primary-color);
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+      }
+
+      .back-link a:hover {
+        text-decoration: underline;
+      }
+
+      .back-link i {
+        margin-right: 5px;
+      }
+
+      /* Success Loader Styles */
+      .success-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(255, 255, 255, 0.9);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.3s, visibility 0.3s;
+      }
+
+      .success-overlay.show {
+        opacity: 1;
+        visibility: visible;
+      }
+
+      .checkmark {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        display: block;
+        stroke-width: 2;
+        stroke: var(--success-color);
+        stroke-miterlimit: 10;
+        box-shadow: 0 0 0 rgba(46, 204, 113, 0.4);
+        animation: fill 0.4s ease-in-out 0.4s forwards,
+          scale 0.3s ease-in-out 0.9s both;
+        position: relative;
+        margin: 0 auto 30px;
+      }
+
+      .checkmark__circle {
+        stroke-dasharray: 166;
+        stroke-dashoffset: 166;
+        stroke-width: 2;
+        stroke-miterlimit: 10;
+        stroke: var(--success-color);
+        fill: none;
+        animation: stroke 0.6s cubic-bezier(0.65, 0, 0.45, 1) forwards;
+      }
+
+      .checkmark__check {
+        transform-origin: 50% 50%;
+        stroke-dasharray: 48;
+        stroke-dashoffset: 48;
+        animation: stroke 0.3s cubic-bezier(0.65, 0, 0.45, 1) 0.8s forwards;
+      }
+
+      .success-message {
+        font-size: 24px;
+        font-weight: 600;
+        color: var(--success-color);
+        margin-bottom: 10px;
+      }
+
+      .redirect-message {
+        color: var(--light-text);
+        font-size: 16px;
+      }
+
+      @keyframes stroke {
+        100% {
+          stroke-dashoffset: 0;
+        }
+      }
+
+      @keyframes scale {
+        0%,
+        100% {
+          transform: none;
+        }
+        50% {
+          transform: scale3d(1.1, 1.1, 1);
+        }
+      }
+
+      @keyframes fill {
+        100% {
+          box-shadow: inset 0 0 0 80px var(--success-color);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="login-container">
+      <div class="login-header">
+        <h2>Inventory Management System</h2>
+        <p>Sign in to your account</p>
+      </div>
+
+      <form
+        id="loginForm"
+        method="POST"
+        action="{{ url_for('main.login') }}"
+        class="login-form"
+      >
+        <div class="form-group">
+          <label for="username">Username</label>
+          <input type="text" id="username" name="username" required />
+          <i class="fas fa-user"></i>
+        </div>
+
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input type="password" id="password" name="password" required />
+          <i class="fas fa-lock"></i>
+        </div>
+
+        <button type="submit" class="btn-login">Sign In</button>
+
+        {% if error %}
+        <div class="error-message">
+          <i class="fas fa-exclamation-circle"></i> {{ error }}
+        </div>
+        {% endif %}
+      </form>
+
+      <div class="back-link">
+        <a href="{{ url_for('main.welcome') }}">
+          <i class="fas fa-arrow-left"></i> Back to Welcome Page
+        </a>
+      </div>
+    </div>
+
+    <!-- Success Overlay -->
+    <div id="successOverlay" class="success-overlay">
+      <svg
+        class="checkmark"
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 52 52"
+      >
+        <circle class="checkmark__circle" cx="26" cy="26" r="25" fill="none" />
+        <path
+          class="checkmark__check"
+          fill="none"
+          d="M14.1 27.2l7.1 7.2 16.7-16.8"
+        />
+      </svg>
+      <div class="success-message">Login Successful!</div>
+      <div class="redirect-message">Redirecting to dashboard...</div>
+    </div>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        const loginForm = document.getElementById("loginForm");
+        const successOverlay = document.getElementById("successOverlay");
+
+        loginForm.addEventListener("submit", function (e) {
+          // Only intercept if there's no error from a previous submission
+          if (!document.querySelector(".error-message")) {
+            e.preventDefault();
+
+            // Simulate form submission
+            const formData = new FormData(loginForm);
+
+            fetch(loginForm.action, {
+              method: "POST",
+              body: formData,
+              headers: {
+                Accept: "application/json",
+              },
+            })
+              .then((response) => {
+                if (response.redirected) {
+                  // Show success animation
+                  successOverlay.classList.add("show");
+
+                  // Redirect after animation (2 seconds)
+                  setTimeout(() => {
+                    window.location.href = response.url;
+                  }, 2000);
+                } else {
+                  // If login failed, submit the form normally to show error
+                  loginForm.submit();
+                }
+              })
+              .catch((error) => {
+                console.error("Error:", error);
+                loginForm.submit();
+              });
+          }
+        });
+      });
+    </script>
+  </body>
+</html>

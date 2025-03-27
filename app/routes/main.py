@@ -1,4 +1,4 @@
-from flask import Blueprint, send_file, request, render_template, redirect, url_for, flash, send_file
+from flask import Blueprint, send_file, request, render_template, redirect, url_for, flash, send_file, session
 from app.models.product import Product
 from app.services.replenishment import get_replenishment_suggestions
 from app.forms import ProductForm, SaleForm
@@ -14,11 +14,15 @@ from app import db
 from datetime import datetime, timedelta
 import json
 import io
+from app.models.user import User
+from werkzeug.security import generate_password_hash, check_password_hash
+from functools import wraps
 import plotly
 import plotly.express as px
 import pandas as pd
 import numpy as np
 from app.models import Product, sales
+from app.models.user import User
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter
 
@@ -27,11 +31,60 @@ from reportlab.lib.pagesizes import letter
 bp = Blueprint('main', __name__)
 
 
+
+# Add this decorator function
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user_id' not in session:
+            return redirect(url_for('main.login'))
+        return f(*args, **kwargs)
+    return decorated_function
+
+
+
+# Add login route
+@bp.route('/login', methods=['GET', 'POST'])
+def login():
+    # If user is already logged in, redirect to dashboard
+    if 'user_id' in session:
+        return redirect(url_for('main.dashboard'))
+    
+    error = None
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        
+        user = User.query.filter_by(username=username).first()
+        
+        if user and check_password_hash(user.password, password):
+            session['user_id'] = user.id
+            session['username'] = user.username
+            
+            # Check if it's an AJAX request
+            if request.headers.get('Accept') == 'application/json':
+                return redirect(url_for('main.dashboard'))
+            else:
+                return redirect(url_for('main.dashboard'))
+        else:
+            error = 'Invalid username or password'
+    
+    return render_template('login.html', error=error)
+
+
+# Add logout route
+@bp.route('/logout')
+def logout():
+    session.clear()
+    return redirect(url_for('main.login'))
+
 @bp.route('/')
 def welcome():
     return render_template('welcome.html')
 
+
 @bp.route('/dashboard')
+@login_required
 def dashboard():
     # Calculate total sales for last 30 days
     thirty_days_ago = datetime.utcnow() - timedelta(days=30)
@@ -131,12 +184,19 @@ def create_sales_graph(sales_data):
 
 
 
+
+
+
+
+
+
 @bp.route('/')
 def index():
     products = Product.query.all()
     return redirect(url_for('main.dashboard'))
 
 @bp.route('/product/add', methods=['GET', 'POST'])
+@login_required
 def add_product():
     form = ProductForm()
     if form.validate_on_submit():
@@ -159,6 +219,7 @@ def add_product():
 
 
 @bp.route('/record_sale', methods=['GET', 'POST'])
+@login_required
 def record_sale():
     analytics_data = {
         'dates': [],
@@ -307,6 +368,7 @@ def generate_invoice(sale, product):
 
 
 @bp.route('/product/<int:product_id>/add-stock', methods=['GET', 'POST'])
+@login_required
 def product_add_stock(product_id):
     product = Product.query.get_or_404(product_id)
     
@@ -324,6 +386,7 @@ def product_add_stock(product_id):
 
 
 @bp.route('/replenishment')
+@login_required
 def replenishment():
     suggestions = get_replenishment_suggestions()
     return render_template('replenishment.html', suggestions=suggestions)
@@ -331,6 +394,7 @@ def replenishment():
 
 
 @bp.route('/monitoring')
+@login_required
 def monitoring():
     # Get stock alerts
     alerts = StockMonitor.get_stock_alerts()
@@ -354,6 +418,7 @@ def monitoring():
 
 
 @bp.route('/forecasting')
+@login_required
 def forecasting():
     products = Product.query.all()
     current_date = datetime.now()
@@ -437,6 +502,7 @@ def get_recommendation(product, forecast_demand):
 #     )
 
 @bp.route('/generate-report', methods=['GET', 'POST'])
+@login_required
 def generate_report():
     if request.method == 'POST':
         report_type = request.form.get('report_type')
@@ -522,6 +588,7 @@ def generate_report():
 
 
 @bp.route('/add_stock/<int:product_id>', methods=['GET', 'POST'])
+@login_required
 def add_stock(product_id):
     product = Product.query.get_or_404(product_id)
     
